@@ -116,9 +116,8 @@ class UIDFixerView(BrowserView):
             try:
                 context = self.resolve_redirector(href, context)
             except (KeyError, AttributeError):
-                print 'could not find:', href
+                pass
             else:
-                print 'context found:', context.UID()
                 return context.UID()
 
     def resolve_redirector(self, href, context):
@@ -139,7 +138,6 @@ class UIDFixerView(BrowserView):
             else:
                 break
         path = list(context.getPhysicalPath()) + chunks
-        print 'path:', path
         redirect = redirector.get('/'.join(path))
         if redirect is not None:
             redirected = context.restrictedTraverse(
