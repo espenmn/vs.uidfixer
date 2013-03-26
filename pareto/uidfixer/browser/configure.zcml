@@ -1,0 +1,13 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:browser="http://namespaces.zope.org/browser"
+    xmlns:five="http://namespaces.zope.org/five"
+    i18n_domain="knmp.im">
+
+    <browser:page
+        for="*"
+        name="uidfixer"
+        class=".uidfixer.UIDFixerView"
+        permission="zope2.ViewManagementScreens" />
+
+</configure>
