@@ -59,7 +59,10 @@ class UIDFixerView(BrowserView):
         for manager_name in (
                 'plone.leftcolumn', 'plone.rightcolumn',
                 'collage.portletmanager'):
-            manager = getUtility(IPortletManager, manager_name, context)
+            try:
+                manager = getUtility(IPortletManager, manager_name, context)
+            except ComponentLookupError:
+                continue
             if manager:
                 retriever = getMultiAdapter(
                     (context, manager), IPortletRetriever)
