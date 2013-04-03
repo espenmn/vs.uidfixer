@@ -13,13 +13,13 @@ Installation
 
 Simply add pareto.uidfixer to your buildout.cfg::
 
+    find-links =
+        ...
+        https://dist.pareto.nl/public/
     eggs =
         ...
         pareto.uidfixer
     zcml =
-        ...
-        pareto.uidfixer
-    auto-checkout =
         ...
         pareto.uidfixer
 

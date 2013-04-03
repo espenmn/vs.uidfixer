@@ -24,6 +24,7 @@ setup(name='pareto.uidfixer',
       zip_safe=False,
       install_requires=[
           'setuptools',
+          'pycurl',
           # -*- Extra requirements: -*-
       ],
       entry_points="""
