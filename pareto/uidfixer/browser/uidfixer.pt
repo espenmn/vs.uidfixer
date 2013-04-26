@@ -20,6 +20,12 @@
         links that can not be resolved.
       </p>
       <form method="post">
+        <div class="field">
+          <input type="checkbox" name="dry" id="dry" />
+          <label for="dry">
+            Dry run (don't actually fix anything).
+          </label>
+        </div>
         <div>
           <input type="submit" name="submit" value="submit"
                  i18n:domain="plone" i18n:attributes="value" />

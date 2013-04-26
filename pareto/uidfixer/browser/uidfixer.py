@@ -87,7 +87,7 @@ class UIDFixerView(BrowserView):
                             yield (
                                 context, portlet,
                                 href, uid)
-                        if fixed:
+                        if fixed and not self.request.get('dry'):
                             assignment.text = html
                             assignment._p_changed = True
 
@@ -106,11 +106,11 @@ class UIDFixerView(BrowserView):
                     pass
                 else:
                     html = html.replace(
-                        'href="%s"' % (href,),
-                        'href="resolveuid/%s"' % (uid,))
+                        'href="%s' % (href,),
+                        'href="resolveuid/%s' % (uid,))
                 fixed = True
                 yield context, field, href, uid
-            if fixed:
+            if fixed and not self.request.get('dry'):
                 field.set(context, html)
 
     def convert_link(self, href, context):
@@ -129,9 +129,9 @@ class UIDFixerView(BrowserView):
         redirector = getUtility(IRedirectionStorage)
         if href.endswith('/'):
             href = href[:-1]
-        chunks = href.split('/')
+        chunks = [urllib.unquote(chunk) for chunk in href.split('/')]
         while chunks:
-            chunk = urllib.unquote(chunks[0])
+            chunk = chunks[0]
             if chunk in ('', '.'):
                 chunks.pop(0)
                 continue

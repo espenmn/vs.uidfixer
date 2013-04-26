@@ -30,11 +30,12 @@
         <table border="1" style="font-size: 10px">
           <thead>
             <tr>
-              <th colspan="3">URL</th>
+              <th colspan="3">URL of document containing link</th>
             </tr>
             <tr>
               <th>field</th>
-              <th>href</th>
+              <th>link href</th>
+              <th>found target url</th>
             </tr>
           </thead>
           <tbody>
@@ -59,8 +60,8 @@
             </tal:block>
           </tbody>
         </table>
-        <strong>Total:</strong> <em tal:content="python:len(results)" />
-        <strong>Broken:</strong> <em tal:content="python:len([r for r in results if not r['resolved']])" />
+        <strong>Total:</strong> <em tal:content="python:len(results)"></em>
+        <strong>Broken:</strong> <em tal:content="python:len([r for r in results if not r['resolved']])"></em>
       </div>
     </metal:main>
   </body>
