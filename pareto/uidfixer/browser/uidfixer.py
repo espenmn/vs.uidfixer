@@ -81,8 +81,8 @@ class UIDFixerView(BrowserView):
                         for href, uid in self.find_uids(html, context):
                             if uid:
                                 html = html.replace(
-                                    'href="%s"' % (href,),
-                                    'href="resolveuid/%s"' % (uid,))
+                                    'href="%s' % (href,),
+                                    'href="resolveuid/%s' % (uid,))
                                 fixed = True
                             yield (
                                 context, portlet,
@@ -127,8 +127,6 @@ class UIDFixerView(BrowserView):
 
     def resolve_redirector(self, href, context):
         redirector = getUtility(IRedirectionStorage)
-        if '?' in href:
-            href, _ = href.split('?')
         if href.endswith('/'):
             href = href[:-1]
         chunks = href.split('/')
@@ -150,9 +148,13 @@ class UIDFixerView(BrowserView):
             if redirected is not None:
                 context = redirected
             else:
-                context = getattr(context, chunk)
+                while chunks:
+                    chunk = chunks.pop(0)
+                    context = getattr(context, chunk)
         else:
-            context = getattr(context, chunk)
+            while chunks:
+                chunk = chunks.pop(0)
+                context = getattr(context, chunk)
         return context
 
     _reg_href = re.compile(r'href="([^"]+)"')
@@ -162,6 +164,12 @@ class UIDFixerView(BrowserView):
             if not match:
                 break
             href = match.group(1)
+            # leave any views, GET vars and hashes alone
+            # not entirely correct, but this seems
+            # relatively solid
+            for s in ('@@', '?', '#', '++'):
+                if s in href:
+                    href = href[:href.find(s)]
             html = html.replace(match.group(0), '')
             scheme, netloc, path, params, query, fragment = urlparse(href)
             if not scheme and not href.startswith('resolveuid/'):
