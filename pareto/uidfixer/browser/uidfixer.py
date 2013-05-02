@@ -34,12 +34,16 @@ class UIDFixerView(BrowserView):
 
     def results(self):
         """ return a nicely formatted list of objects for a template """
+        portal_catalog = self.context.portal_catalog
         return [{
             'object': context,
             'field': field,
             'href': href,
-            'resolved': resolved}
-            for context, field, href, resolved in self.fix(self.context)]
+            'resolved': not not uid,
+            'resolved_url':
+                (uid and
+                    portal_catalog(UID=uid)[0].getObject().absolute_url()),
+        } for context, field, href, uid in self.fix(self.context)]
 
     def fix(self, context, processed_portlets=None):
         if not context.getId().startswith('portal_'):
@@ -75,16 +79,15 @@ class UIDFixerView(BrowserView):
                         html = assignment.text
                         fixed = False
                         for href, uid in self.find_uids(html, context):
-                            resolved = not not uid
-                            if resolved:
+                            if uid:
                                 html = html.replace(
-                                    'href="%s"' % (href,),
-                                    'href="resolveuid/%s"' % (uid,))
+                                    'href="%s' % (href,),
+                                    'href="resolveuid/%s' % (uid,))
                                 fixed = True
                             yield (
                                 context, portlet,
-                                href, resolved)
-                        if fixed:
+                                href, uid)
+                        if fixed and not self.request.get('dry'):
                             assignment.text = html
                             assignment._p_changed = True
 
@@ -98,17 +101,16 @@ class UIDFixerView(BrowserView):
             html = field.getRaw(context)
             fixed = False
             for href, uid in self.find_uids(html, context):
-                resolved = not not uid
-                if not resolved:
+                if not uid:
                     # html = html.replace(href, 'UNRESOLVED:/%s' % (uid,))
                     pass
                 else:
                     html = html.replace(
-                        'href="%s"' % (href,),
-                        'href="resolveuid/%s"' % (uid,))
+                        'href="%s' % (href,),
+                        'href="resolveuid/%s' % (uid,))
                 fixed = True
-                yield context, field, href, resolved
-            if fixed:
+                yield context, field, href, uid
+            if fixed and not self.request.get('dry'):
                 field.set(context, html)
 
     def convert_link(self, href, context):
@@ -125,13 +127,11 @@ class UIDFixerView(BrowserView):
 
     def resolve_redirector(self, href, context):
         redirector = getUtility(IRedirectionStorage)
-        if '?' in href:
-            href, _ = href.split('?')
         if href.endswith('/'):
             href = href[:-1]
-        chunks = href.split('/')
+        chunks = [urllib.unquote(chunk) for chunk in href.split('/')]
         while chunks:
-            chunk = urllib.unquote(chunks[0])
+            chunk = chunks[0]
             if chunk in ('', '.'):
                 chunks.pop(0)
                 continue
@@ -148,9 +148,13 @@ class UIDFixerView(BrowserView):
             if redirected is not None:
                 context = redirected
             else:
-                context = getattr(context, chunk)
+                while chunks:
+                    chunk = chunks.pop(0)
+                    context = getattr(context, chunk)
         else:
-            context = getattr(context, chunk)
+            while chunks:
+                chunk = chunks.pop(0)
+                context = getattr(context, chunk)
         return context
 
     _reg_href = re.compile(r'href="([^"]+)"')
@@ -160,6 +164,12 @@ class UIDFixerView(BrowserView):
             if not match:
                 break
             href = match.group(1)
+            # leave any views, GET vars and hashes alone
+            # not entirely correct, but this seems
+            # relatively solid
+            for s in ('@@', '?', '#', '++'):
+                if s in href:
+                    href = href[:href.find(s)]
             html = html.replace(match.group(0), '')
             scheme, netloc, path, params, query, fragment = urlparse(href)
             if not scheme and not href.startswith('resolveuid/'):
