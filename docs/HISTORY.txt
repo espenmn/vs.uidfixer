@@ -1,6 +1,21 @@
 Changelog
 =========
 
+0.3
+---
+
+* Fixed nasty bug in href replacing code that made that sometimes hrefs
+  were replaced twice.
+
+* Skipping links that contain only a hash.
+
+0.2
+---
+
+* Bugfixes in href processing makes that more hrefs are found and fixed.
+
+* Added more data (resolved URL) to output to make verification easier.
+
 0.1dev (unreleased)
 -------------------
 
