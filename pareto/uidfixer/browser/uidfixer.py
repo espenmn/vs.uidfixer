@@ -1,7 +1,3 @@
-import re
-import urllib
-from urlparse import urlparse
-
 from Products.ATContentTypes.content import base
 
 from plone.portlets.interfaces import (
@@ -14,13 +10,7 @@ from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
 
 from plone.app.redirector.interfaces import IRedirectionStorage
 
-# XXX meh, no clue what lib has this anymore... replace once remembered!
-def entitize(s):
-    s = s.replace('&', '&amp;')
-    s = s.replace('"', '&quot;')
-    s = s.replace('<', '&lt;')
-    s = s.replace('>', '&gt;')
-    return s
+from pareto.uidfixer import uidfixer
 
 
 class UIDFixerView(BrowserView):
@@ -28,6 +18,8 @@ class UIDFixerView(BrowserView):
     results_template = ViewPageTemplateFile('uidfixer-results.pt')
 
     def __call__(self):
+        redirector = getUtility(IRedirectionStorage)
+        self.fixer = uidfixer.UIDFixer(redirector)
         if not self.request.get('submit'):
             return self.template()
         return self.results_template()
@@ -78,15 +70,11 @@ class UIDFixerView(BrowserView):
                     if hasattr(assignment, 'text'):
                         html = assignment.text
                         fixed = False
-                        for href, uid, rest in self.find_uids(html, context):
+                        html, results = self.fixer.replace_uids(html, context)
+                        for href, uid in results:
                             if uid:
-                                html = html.replace(
-                                    'href="%s%s"' % (href, rest),
-                                    'href="resolveuid/%s%s"' % (uid, rest))
                                 fixed = True
-                            yield (
-                                context, portlet,
-                                href, uid)
+                            yield (context, portlet, href, uid)
                         if fixed and not self.request.get('dry'):
                             assignment.text = html
                             assignment._p_changed = True
@@ -100,81 +88,10 @@ class UIDFixerView(BrowserView):
             fieldname = field.getName()
             html = field.getRaw(context)
             fixed = False
-            for href, uid, rest in self.find_uids(html, context):
-                if not uid or not href:
-                    # html = html.replace(href, 'UNRESOLVED:/%s' % (uid,))
-                    pass
-                else:
-                    html = html.replace(
-                        'href="%s%s"' % (href, rest),
-                        'href="resolveuid/%s%s"' % (uid, rest))
-                fixed = True
+            html, results = self.fixer.replace_uids(html, context)
+            for href, uid in results:
+                if uid:
+                    fixed = True
                 yield context, field, href, uid
             if fixed and not self.request.get('dry'):
                 field.set(context, html)
-
-    def convert_link(self, href, context):
-        if '/resolveuid/' in href:
-            _, uid = href.split('/resolveuid/')
-            return uid
-        else:
-            try:
-                context = self.resolve_redirector(href, context)
-            except (KeyError, AttributeError):
-                pass
-            else:
-                return context.UID()
-
-    def resolve_redirector(self, href, context):
-        redirector = getUtility(IRedirectionStorage)
-        if href.endswith('/'):
-            href = href[:-1]
-        chunks = [urllib.unquote(chunk) for chunk in href.split('/')]
-        while chunks:
-            chunk = chunks[0]
-            if chunk in ('', '.'):
-                chunks.pop(0)
-                continue
-            elif chunk == '..':
-                chunks.pop(0)
-                context = context.aq_parent
-            else:
-                break
-        path = list(context.getPhysicalPath()) + chunks
-        redirect = redirector.get('/'.join(path))
-        if redirect is not None:
-            redirected = context.restrictedTraverse(
-                redirect.split('/'))
-            if redirected is not None:
-                context = redirected
-            else:
-                while chunks:
-                    chunk = chunks.pop(0)
-                    context = getattr(context, chunk)
-        else:
-            while chunks:
-                chunk = chunks.pop(0)
-                context = getattr(context, chunk)
-        return context
-
-    _reg_href = re.compile(r'href="([^"]+)"')
-    def find_uids(self, html, context):
-        while True:
-            match = self._reg_href.search(html)
-            if not match:
-                break
-            href = match.group(1)
-            # leave any views, GET vars and hashes alone
-            # not entirely correct, but this seems
-            # relatively solid
-            rest = ''
-            for s in ('@@', '?', '#', '++'):
-                if s in href:
-                    rest += href[href.find(s):]
-                    href = href[:href.find(s)]
-            html = html.replace(match.group(0), '')
-            scheme, netloc, path, params, query, fragment = urlparse(href)
-            if not scheme and not href.startswith('resolveuid/'):
-                # relative link, convert to resolveuid one
-                uid = self.convert_link(href, context)
-                yield href, uid, rest
