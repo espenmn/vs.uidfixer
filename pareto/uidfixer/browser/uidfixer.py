@@ -81,8 +81,8 @@ class UIDFixerView(BrowserView):
                         for href, uid, rest in self.find_uids(html, context):
                             if uid:
                                 html = html.replace(
-                                    'href="%s%s' % (href, rest),
-                                    'href="resolveuid/%s%s' % (uid, rest))
+                                    'href="%s%s"' % (href, rest),
+                                    'href="resolveuid/%s%s"' % (uid, rest))
                                 fixed = True
                             yield (
                                 context, portlet,
@@ -106,8 +106,8 @@ class UIDFixerView(BrowserView):
                     pass
                 else:
                     html = html.replace(
-                        'href="%s%s' % (href, rest),
-                        'href="resolveuid/%s%s' % (uid, rest))
+                        'href="%s%s"' % (href, rest),
+                        'href="resolveuid/%s%s"' % (uid, rest))
                 fixed = True
                 yield context, field, href, uid
             if fixed and not self.request.get('dry'):
