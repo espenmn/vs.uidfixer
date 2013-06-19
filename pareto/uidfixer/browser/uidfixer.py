@@ -4,6 +4,7 @@ from plone.portlets.interfaces import (
     IPortletManager, IPortletAssignmentMapping, IPortletRetriever,
     ILocalPortletAssignable)
 from zope.component import getUtility, getMultiAdapter, ComponentLookupError
+from Products.CMFCore.utils import getToolByName
 
 from Products.Five import BrowserView
 from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
@@ -20,7 +21,7 @@ class UIDFixerView(BrowserView):
     def __call__(self):
         portal = getToolByName(self.context, "portal_url").getPortalObject()
         redirector = getUtility(IRedirectionStorage)
-        self.fixer = uidfixer.UIDFixer(redirector)
+        self.fixer = uidfixer.UIDFixer(redirector, portal)
         if not self.request.get('submit'):
             return self.template()
         return self.results_template()
