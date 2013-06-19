@@ -4,6 +4,8 @@ Changelog
 0.4
 ---
 
+* Fixed non-HTTP protocol support (e.g. mailto: links are no longer processed).
+
 * Added tests, refactored code to allow them.
 
 0.3

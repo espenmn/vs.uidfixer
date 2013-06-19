@@ -131,6 +131,12 @@ class HrefProcessorTestCase(unittest.TestCase):
         htmlres, results = self.fixer.replace_uids(html, self.spam)
         self.assertEquals(htmlres, '<a href="resolveuid/123">borken</a>')
 
+    def test_wrong_protocol(self):
+        html = '<a href="mailto:foo@bar.baz">mail</a>'
+        htmlres, results = self.fixer.replace_uids(html, self.spam)
+        self.assertEquals(htmlres, '<a href="mailto:foo@bar.baz">mail</a>')
+        self.assertEquals(len(results), 0)
+
 
 def test_suite():
     from zope.testing import doctestunit
