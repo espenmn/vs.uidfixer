@@ -18,6 +18,7 @@ class UIDFixerView(BrowserView):
     results_template = ViewPageTemplateFile('uidfixer-results.pt')
 
     def __call__(self):
+        portal = getToolByName(self.context, "portal_url").getPortalObject()
         redirector = getUtility(IRedirectionStorage)
         self.fixer = uidfixer.UIDFixer(redirector)
         if not self.request.get('submit'):

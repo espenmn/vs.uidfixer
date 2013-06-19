@@ -46,6 +46,7 @@ class FakeObject(object):
             return self.aq_parent.root
         return self
 
+
 class HrefProcessorTestCase(unittest.TestCase):
     def setUp(self):
         self.redirector = redirector = {}
