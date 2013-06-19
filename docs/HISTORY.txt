@@ -1,6 +1,11 @@
 Changelog
 =========
 
+0.4
+---
+
+* Added tests, refactored code to allow them.
+
 0.3
 ---
 
