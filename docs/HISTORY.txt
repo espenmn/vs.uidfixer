@@ -1,6 +1,14 @@
 Changelog
 =========
 
+0.5
+---
+
+* Fixed resolution issues, resolution now takes isPrincipiaFolderish into
+  account, making it more correct and solid (turned out often paths were
+  resolved because of acquisition, even though they were technically
+  incorrect).
+
 0.4
 ---
 

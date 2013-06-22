@@ -4,11 +4,14 @@ import uidfixer
 
 
 class FakeObject(object):
+    isPrincipiaFolderish = False
+
     def __init__(self, id, uid, parent=None):
         self.id = id
         self.uid = uid
         self.aq_parent = parent
         if parent is not None:
+            parent.isPrincipiaFolderish = True
             parent.children[id] = self
         self.children = {}
 
@@ -35,9 +38,9 @@ class FakeObject(object):
 
     def getPhysicalPath(self):
         if self.aq_parent is None:
-            return ()
+            return ('',)
         path = self.aq_parent.getPhysicalPath()
-        path = (self.id,) + path
+        path = path + (self.id,)
         return path
 
     @property
@@ -49,8 +52,13 @@ class FakeObject(object):
 
 class HrefProcessorTestCase(unittest.TestCase):
     def setUp(self):
+        # NOTE: isPrincipiaFolderish is set to True if an object gets
+        # children assigned, so it's False for all leaf-nodes (this is
+        # used when paths are resolved, on non-folders the start context
+        # of path resolution is the parent, not the item)
         self.redirector = redirector = {}
         self.root = root = FakeObject('root', '0')
+        self.root.isPrincipiaFolderish = True
         self.fixer = uidfixer.UIDFixer(redirector, root)
         self.foo = foo = FakeObject('foo', '1', root)
         self.bar = FakeObject('bar', '2', foo)
@@ -58,13 +66,13 @@ class HrefProcessorTestCase(unittest.TestCase):
 
     def test_self(self):
         htmlres, results = self.fixer.replace_uids(
-            '<a href=".">foo</a>', self.foo)
-        self.assertEquals(htmlres, '<a href="resolveuid/1">foo</a>')
+            '<a href=".">root</a>', self.root)
+        self.assertEquals(htmlres, '<a href="resolveuid/0">root</a>')
 
     def test_parent(self):
         htmlres, results = self.fixer.replace_uids(
-            '<a href="..">foo</a>', self.bar)
-        self.assertEquals(htmlres, '<a href="resolveuid/1">foo</a>')
+            '<a href="..">root</a>', self.foo)
+        self.assertEquals(htmlres, '<a href="resolveuid/0">root</a>')
 
     def test_root(self):
         htmlres, results = self.fixer.replace_uids(
@@ -73,7 +81,7 @@ class HrefProcessorTestCase(unittest.TestCase):
 
     def test_weird_routing(self):
         htmlres, results = self.fixer.replace_uids(
-            '<a href="../foo/bar/.././bar/../.">foo</a>', self.spam)
+            '<a href="./foo/bar/.././bar/../.">foo</a>', self.spam)
         self.assertEquals(htmlres, '<a href="resolveuid/1">foo</a>')
 
     def test_absolute(self):
@@ -98,17 +106,17 @@ class HrefProcessorTestCase(unittest.TestCase):
 
     def test_multi(self):
         htmlres, results = self.fixer.replace_uids(
-                '<a href="..">foo</a><a href=".">bar</a>', self.bar)
+                '<a href="..">root</a><a href=".">foo</a>', self.foo)
         self.assertEquals(
             htmlres,
-            '<a href="resolveuid/1">foo</a><a href="resolveuid/2">bar</a>')
+            '<a href="resolveuid/0">root</a><a href="resolveuid/1">foo</a>')
 
     def test_multi_reverse(self):
-        html = '<a href=".">bar</a><a href="..">foo</a>'
-        htmlres, results = self.fixer.replace_uids(html, self.bar)
+        html = '<a href=".">foo</a><a href="..">root</a>'
+        htmlres, results = self.fixer.replace_uids(html, self.foo)
         self.assertEquals(
             htmlres,
-            '<a href="resolveuid/2">bar</a><a href="resolveuid/1">foo</a>')
+            '<a href="resolveuid/1">foo</a><a href="resolveuid/0">root</a>')
 
     def test_multiple_hashes(self):
         html = '<a href="#foo">#foo</a><a href="#bar">#bar</a>'
@@ -116,9 +124,21 @@ class HrefProcessorTestCase(unittest.TestCase):
         self.assertEquals(htmlres, html)
 
     def test_replace_redirector(self):
-        self.redirector['foo'] = '/spam'
+        self.redirector['/foo'] = '/spam'
         html = '<a href=".">spam</a>'
         htmlres, results = self.fixer.replace_uids(html, self.foo)
+        self.assertEquals(htmlres, '<a href="resolveuid/3">spam</a>')
+
+    def test_replace_redirector_long_path(self):
+        self.redirector[
+            '/downloads/organisatie-regelgeving/'
+            'organisatie-regelgeving-lsp/20130215_VergoedingenLSP.pdf'
+        ] = '/spam'
+        html = (
+            '<a href="./../downloads/organisatie-regelgeving/'
+            'organisatie-regelgeving-lsp/20130215_VergoedingenLSP.pdf">'
+            'spam</a>')
+        htmlres, results = self.fixer.replace_uids(html, self.bar)
         self.assertEquals(htmlres, '<a href="resolveuid/3">spam</a>')
 
     def test_replace_broken_resolveuid(self):

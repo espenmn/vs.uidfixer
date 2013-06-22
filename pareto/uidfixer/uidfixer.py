@@ -61,8 +61,13 @@ class UIDFixer(object):
             # start from site root
             context = self.site_root
             href = href[1:]
-        if href.endswith('/'):
+        if len(href) > 1 and href.endswith('/'):
             href = href[:-1]
+        # on non-folder types, the start context for hrefs is the parent
+        # container (so, <base> tags on folders end on a slash, on non-folders
+        # they don't)
+        if not context.isPrincipiaFolderish:
+            context = context.aq_parent
         chunks = [urllib.unquote(chunk) for chunk in href.split('/')]
         while chunks:
             chunk = chunks[0]
@@ -71,7 +76,8 @@ class UIDFixer(object):
                 continue
             elif chunk == '..':
                 chunks.pop(0)
-                context = context.aq_parent
+                if context != self.site_root:
+                    context = context.aq_parent
             else:
                 break
         path = list(context.getPhysicalPath()) + chunks
