@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 import os
 
-version = '0.5'
+version = '0.6-unreleased'
 
 setup(name='pareto.uidfixer',
       version=version,
@@ -24,6 +24,7 @@ setup(name='pareto.uidfixer',
       zip_safe=False,
       install_requires=[
           'setuptools',
+          'pareto.plonehtml',
           # -*- Extra requirements: -*-
       ],
       entry_points="""
