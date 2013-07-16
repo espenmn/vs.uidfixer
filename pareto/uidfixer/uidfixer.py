@@ -4,9 +4,10 @@ from urlparse import urlparse
 
 
 class UIDFixer(object):
-    def __init__(self, redirector, site_root):
+    def __init__(self, redirector, site_root, hostnames=None):
         self.redirector = redirector
         self.site_root = site_root
+        self.hostnames = hostnames or []
 
     def replace_uids(self, html, context):
         results = []
@@ -35,18 +36,21 @@ class UIDFixer(object):
                     rest += href[href.find(s):]
                     href = href[:href.find(s)]
             html = html.replace(match.group(0), '')
-            if not href:
+            if not href or href.startswith('resolveuid/'):
                 continue
             scheme, netloc, path, params, query, fragment = urlparse(href)
-            if (not scheme and not netloc and
-                    not href.startswith('resolveuid/')):
+            if (not scheme or scheme in ('http', 'https') and
+                    (not netloc or netloc in self.hostnames)):
                 # relative link, convert to resolveuid one
-                uid = self.convert_link(href, context)
+                uid = self.convert_link(path, context)
                 yield href, uid, rest
 
     def convert_link(self, href, context):
         if '/resolveuid/' in href:
             _, uid = href.split('/resolveuid/')
+            # verify uid, if it doesn't exist anymore, we don't fix the link
+            if not self.verify_uid(uid, context):
+                return
             return uid
         else:
             try:
@@ -54,6 +58,19 @@ class UIDFixer(object):
             except (KeyError, AttributeError), e:
                 pass
             else:
+                # Zope may return a callable rather than a proper object,
+                # in which case we want to call it (it's a view)
+                if hasattr(context, 'im_self'):
+                    context = context.im_self
+                    # HACK: add the view name to the uid to get the right
+                    # urls later on ('resolveuid/<uid>/<view>')
+                    if not hasattr(context, 'UID'):
+                        print 'CAN NOT CONVERT NON-PLONE OBJECT HREF:', href
+                        return
+                    return '%s/%s' % (context.UID(), href.split('/')[-1])
+                if not hasattr(context, 'UID'):
+                    print 'CAN NOT CONVERT NON-PLONE OBJECT HREF:', href
+                    return
                 return context.UID()
 
     def resolve_redirector(self, href, context):
@@ -101,3 +118,6 @@ class UIDFixer(object):
                 else:
                     context = getattr(context, chunk)
         return context
+
+    def verify_uid(self, uid, context):
+        return not not context.portal_catalog(UID=uid)

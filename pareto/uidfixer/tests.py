@@ -3,20 +3,16 @@ import unittest
 import uidfixer
 
 
-class FakeObject(object):
+class FakeObjectNoUID(object):
     isPrincipiaFolderish = False
 
-    def __init__(self, id, uid, parent=None):
+    def __init__(self, id, parent=None):
         self.id = id
-        self.uid = uid
         self.aq_parent = parent
         if parent is not None:
             parent.isPrincipiaFolderish = True
             parent.children[id] = self
         self.children = {}
-
-    def UID(self):
-        return self.uid
 
     def __getitem__(self, name):
         return self.children[name]
@@ -49,6 +45,29 @@ class FakeObject(object):
             return self.aq_parent.root
         return self
 
+    # mimic a view a bit
+    def view(self):
+        pass
+
+
+class FakeObject(FakeObjectNoUID):
+    def __init__(self, id, uid, parent=None):
+        self.id = id
+        self.uid = uid
+        self.aq_parent = parent
+        if parent is not None:
+            parent.isPrincipiaFolderish = True
+            parent.children[id] = self
+        self.children = {}
+
+    def UID(self):
+        return self.uid
+
+
+class UIDFixerForTests(uidfixer.UIDFixer):
+    def verify_uid(self, uid, context):
+        return True
+
 
 class HrefProcessorTestCase(unittest.TestCase):
     def setUp(self):
@@ -59,10 +78,17 @@ class HrefProcessorTestCase(unittest.TestCase):
         self.redirector = redirector = {}
         self.root = root = FakeObject('root', '0')
         self.root.isPrincipiaFolderish = True
-        self.fixer = uidfixer.UIDFixer(redirector, root)
+        self.fixer = UIDFixerForTests(redirector, root, ['example.com'])
         self.foo = foo = FakeObject('foo', '1', root)
         self.bar = FakeObject('bar', '2', foo)
         self.spam = FakeObject('spam', '3', root)
+        self.nouid = FakeObjectNoUID('nouid', root)
+
+    def test_nofix(self):
+        htmlres, results = self.fixer.replace_uids(
+            '<a href="resolveuid/0">root</a>', self.root)
+        self.assertEquals(htmlres, '<a href="resolveuid/0">root</a>')
+        self.assertEquals(len(results), 0)
 
     def test_self(self):
         htmlres, results = self.fixer.replace_uids(
@@ -156,6 +182,22 @@ class HrefProcessorTestCase(unittest.TestCase):
         htmlres, results = self.fixer.replace_uids(html, self.spam)
         self.assertEquals(htmlres, '<a href="mailto:foo@bar.baz">mail</a>')
         self.assertEquals(len(results), 0)
+
+    def test_absolute_url(self):
+        htmlres, results = self.fixer.replace_uids(
+            '<a href="http://example.com/">root</a>', self.root)
+        self.assertEquals(htmlres, '<a href="resolveuid/0">root</a>')
+
+    def test_absolute_url_no_uid(self):
+        htmlres, results = self.fixer.replace_uids(
+            '<a href="http://example.com/nouid">nouid</a>', self.root)
+        self.assertEquals(
+            htmlres, '<a href="http://example.com/nouid">nouid</a>')
+
+    def test_absolute_url_with_method(self):
+        htmlres, results = self.fixer.replace_uids(
+            '<a href="http://example.com/view">root</a>', self.root)
+        self.assertEquals(htmlres, '<a href="resolveuid/0/view">root</a>')
 
 
 def test_suite():
