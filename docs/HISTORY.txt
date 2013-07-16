@@ -1,6 +1,17 @@
 Changelog
 =========
 
+0.6
+---
+
+* Moved tree traversal to a separate package, called 'pareto.plonehtml'.
+
+* Fixed issues in certain unsupported target objects (non-Plone objects,
+  view methods).
+
+* Added rudimentary (read: currently semi-hard-coded) support for processing
+  internal absolute URLs (so absolute URLs that point to the site root).
+
 0.5
 ---
 
