@@ -5,3 +5,4 @@ develop-eggs
 parts
 pareto.uidfixer.egg-info
 *.pyc
+dist
