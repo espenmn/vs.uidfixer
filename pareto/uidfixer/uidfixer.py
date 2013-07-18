@@ -65,11 +65,9 @@ class UIDFixer(object):
                     # HACK: add the view name to the uid to get the right
                     # urls later on ('resolveuid/<uid>/<view>')
                     if not hasattr(context, 'UID'):
-                        print 'CAN NOT CONVERT NON-PLONE OBJECT HREF:', href
                         return
                     return '%s/%s' % (context.UID(), href.split('/')[-1])
                 if not hasattr(context, 'UID'):
-                    print 'CAN NOT CONVERT NON-PLONE OBJECT HREF:', href
                     return
                 return context.UID()
 
