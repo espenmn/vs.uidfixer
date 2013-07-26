@@ -39,8 +39,9 @@ class UIDFixer(object):
             if not href or href.startswith('resolveuid/'):
                 continue
             scheme, netloc, path, params, query, fragment = urlparse(href)
-            if (not scheme or scheme in ('http', 'https') and
-                    (not netloc or netloc in self.hostnames)):
+            if ((not scheme and not netloc) or
+                    (scheme in ('http', 'https') and
+                        netloc in self.hostnames)):
                 # relative link, convert to resolveuid one
                 uid = self.convert_link(path, context)
                 yield href, uid, rest
