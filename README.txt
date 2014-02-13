@@ -51,8 +51,3 @@ cell containing the field name, if the link was found in an Archetypes field,
 then a cell containing the unmodified path that was (or is if the link could
 not be resolved), and finally a cell containing an absolute url to the
 object if the link was resolved (or text 'not resolved' if it wasn't).
-
-Questions, remarks, etc.
-------------------------
-
-For questions, remarks, etc. send a mail to guido.wesdorp at vs dot nl.
