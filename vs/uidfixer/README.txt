@@ -1,4 +1,4 @@
-pareto.uidfixer Package Readme
+vs.uidfixer Package Readme
 =========================
 
 Overview

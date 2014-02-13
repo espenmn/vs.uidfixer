@@ -9,7 +9,7 @@ Changelog
 0.6
 ---
 
-* Moved tree traversal to a separate package, called 'pareto.plonehtml'.
+* Moved tree traversal to a separate package, called 'vs.plonehtml'.
 
 * Fixed issues in certain unsupported target objects (non-Plone objects,
   view methods).

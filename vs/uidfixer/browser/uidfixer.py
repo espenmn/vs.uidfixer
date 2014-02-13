@@ -5,7 +5,7 @@ from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
 
 from plone.app.redirector.interfaces import IRedirectionStorage
 
-from pareto.plonehtml import plonehtml
+from vs.plonehtml import plonehtml
 from .. import uidfixer
 
 

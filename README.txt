@@ -1,4 +1,4 @@
-pareto.uidfixer
+vs.uidfixer
 ===============
 
 Find relative links in a Plone site and replace them with 'resolveuid' ones.
@@ -11,17 +11,17 @@ the link is converted to a proper 'resolveuid' one and saved.
 Installation
 ------------
 
-Simply add pareto.uidfixer to your buildout.cfg::
+Simply add vs.uidfixer to your buildout.cfg::
 
     find-links =
         ...
-        https://dist.pareto.nl/public/
+        https://dist.vs.nl/public/
     eggs =
         ...
-        pareto.uidfixer
+        vs.uidfixer
     zcml =
         ...
-        pareto.uidfixer
+        vs.uidfixer
 
 (where '...' are previously available entries, if any, if the sections don't
 yet exist, create).
@@ -55,4 +55,4 @@ object if the link was resolved (or text 'not resolved' if it wasn't).
 Questions, remarks, etc.
 ------------------------
 
-For questions, remarks, etc. send a mail to guido.wesdorp at pareto dot nl.
+For questions, remarks, etc. send a mail to guido.wesdorp at vs dot nl.

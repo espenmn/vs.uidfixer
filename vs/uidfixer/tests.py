@@ -210,20 +210,20 @@ def test_suite():
 
         # Unit tests for your API
         doctestunit.DocFileSuite(
-            'README.txt', package='pareto.uidfixer',
+            'README.txt', package='vs.uidfixer',
             setUp=testing.setUp, tearDown=testing.tearDown),
 
         #doctestunit.DocTestSuite(
-        #    module='pareto.uidfixer.mymodule',
+        #    module='vs.uidfixer.mymodule',
         #    setUp=testing.setUp, tearDown=testing.tearDown),
 
         # Integration tests that use ZopeTestCase
         #ztc.ZopeDocFileSuite(
-        #    'README.txt', package='pareto.uidfixer',
+        #    'README.txt', package='vs.uidfixer',
         #    setUp=testing.setUp, tearDown=testing.tearDown),
 
         #ztc.FunctionalDocFileSuite(
-        #    'browser.txt', package='pareto.uidfixer'),
+        #    'browser.txt', package='vs.uidfixer'),
 
         ])
 
