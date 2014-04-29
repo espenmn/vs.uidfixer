@@ -15,7 +15,7 @@ Changelog
   view methods).
 
 * Added rudimentary (read: currently semi-hard-coded) support for processing
-  internal absolute URLs (so absolute URLs that point to the site root).
+0.8 (2014-04-29)
 
 0.5
 ---
