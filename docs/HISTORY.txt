@@ -15,6 +15,12 @@ Changelog
   view methods).
 
 * Added rudimentary (read: currently semi-hard-coded) support for processing
+0.10 (unreleased)
+-----------------
+
+- Nothing changed yet.
+
+
 0.9 (2014-12-11)
 ----------------
 
