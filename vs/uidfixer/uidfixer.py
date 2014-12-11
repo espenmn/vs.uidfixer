@@ -14,6 +14,8 @@ class UIDFixer(object):
         for href, uid, rest in self.find_uids(html, context):
             if uid:
                 fro = 'href="%s%s"' % (href, rest)
+                if rest.startswith('@@') or rest.startswith('++'):
+                    rest = '/' + rest
                 to = 'href="resolveuid/%s%s"' % (uid, rest)
                 assert fro in html, 'href="%s%s"' % (href, rest)
                 html = html.replace(fro, to)
